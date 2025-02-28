@@ -28,7 +28,7 @@ function convertTextToSqlLoaderAndCreateTable(text) {
 
         // Check if the line starts with '#'
         if (cleanedLine.startsWith('#')) {
-            const parts = cleanedLine.split(':x:');
+            const parts = cleanedLine.split(':X:');
             startPosition = parseInt(parts[0].substring(1).trim(), 10);
             const columnPart = parts[1].trim().split(' ');
             fieldName = columnPart[0].replace(/\.{3,}/g, ''); // Remove "..." from column name
