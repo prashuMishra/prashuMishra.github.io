@@ -1,51 +1,38 @@
+
 <!DOCTYPE html><html>
 <head>
     <title>Table Config Generator</title>
     <script>
         function generateSQL() {
-            let table = document.getElementById("tableBody");
-            let rows = table.getElementsByTagName("tr");
+            let tableScript = document.getElementById("tableScript").value;
+            let lines = tableScript.split("\n");
             let sql = "INSERT INTO config_table (column_name, column_type, column_precision, column_scale) VALUES\n";let values = [];
-        for (let i = 0; i < rows.length; i++) {
-            let cols = rows[i].getElementsByTagName("td");
-            let columnName = cols[0].getElementsByTagName("input")[0].value;
-            let columnType = cols[1].getElementsByTagName("input")[0].value;
-            let columnPrecision = cols[2].getElementsByTagName("input")[0].value || "NULL";
-            let columnScale = cols[3].getElementsByTagName("input")[0].value || "NULL";
-            values.push(`('${columnName}', '${columnType}', ${columnPrecision}, ${columnScale})`);
+        for (let line of lines) {
+            let match = line.match(/(\w+)\s+(\w+)(?:(\d+)(?:,(\d+))?)?/);
+            if (match) {
+                let columnName = match[1];
+                let columnType = match[2];
+                let columnPrecision = match[3] || "NULL";
+                let columnScale = match[4] || "NULL";
+                values.push(`('${columnName}', '${columnType}', ${columnPrecision}, ${columnScale})`);
+            }
         }
         
-        sql += values.join(",\n") + ";";
-        document.getElementById("output").textContent = sql;
-    }
-    
-    function addRow() {
-        let table = document.getElementById("tableBody");
-        let row = table.insertRow();
-        for (let i = 0; i < 4; i++) {
-            let cell = row.insertCell(i);
-            let input = document.createElement("input");
-            input.type = "text";
-            cell.appendChild(input);
+        if (values.length > 0) {
+            sql += values.join(",\n") + ";";
+        } else {
+            sql = "No valid columns found in the input.";
         }
+        
+        document.getElementById("output").textContent = sql;
     }
 </script>
 
 </head>
 <body>
     <h2>Table Config Generator</h2>
-    <table border="1">
-        <thead>
-            <tr>
-                <th>Column Name</th>
-                <th>Column Type</th>
-                <th>Precision</th>
-                <th>Scale</th>
-            </tr>
-        </thead>
-        <tbody id="tableBody"></tbody>
-    </table>
-    <button onclick="addRow()">Add Column</button>
+    <textarea id="tableScript" rows="10" cols="80" placeholder="Paste your CREATE TABLE script here..."></textarea>
+    <br>
     <button onclick="generateSQL()">Generate SQL</button>
     <h3>Generated SQL:</h3>
     <pre id="output"></pre>
