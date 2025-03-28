@@ -1,0 +1,53 @@
+<!DOCTYPE html><html>
+<head>
+    <title>Table Config Generator</title>
+    <script>
+        function generateSQL() {
+            let table = document.getElementById("tableBody");
+            let rows = table.getElementsByTagName("tr");
+            let sql = "INSERT INTO config_table (column_name, column_type, column_precision, column_scale) VALUES\n";let values = [];
+        for (let i = 0; i < rows.length; i++) {
+            let cols = rows[i].getElementsByTagName("td");
+            let columnName = cols[0].getElementsByTagName("input")[0].value;
+            let columnType = cols[1].getElementsByTagName("input")[0].value;
+            let columnPrecision = cols[2].getElementsByTagName("input")[0].value || "NULL";
+            let columnScale = cols[3].getElementsByTagName("input")[0].value || "NULL";
+            values.push(`('${columnName}', '${columnType}', ${columnPrecision}, ${columnScale})`);
+        }
+        
+        sql += values.join(",\n") + ";";
+        document.getElementById("output").textContent = sql;
+    }
+    
+    function addRow() {
+        let table = document.getElementById("tableBody");
+        let row = table.insertRow();
+        for (let i = 0; i < 4; i++) {
+            let cell = row.insertCell(i);
+            let input = document.createElement("input");
+            input.type = "text";
+            cell.appendChild(input);
+        }
+    }
+</script>
+
+</head>
+<body>
+    <h2>Table Config Generator</h2>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Column Name</th>
+                <th>Column Type</th>
+                <th>Precision</th>
+                <th>Scale</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+    <button onclick="addRow()">Add Column</button>
+    <button onclick="generateSQL()">Generate SQL</button>
+    <h3>Generated SQL:</h3>
+    <pre id="output"></pre>
+</body>
+</html>
