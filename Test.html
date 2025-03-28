@@ -1,41 +1,47 @@
-<!DOCTYPE html><html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <title>Table Config Generator</title>
-    <script>
-        function generateSQL() {
-            let tableScript = document.getElementById("tableScript").value;
-            let lines = tableScript.split("\n");
-            let sql = "INSERT INTO config_table (column_name, column_type, column_precision, column_scale) VALUES\n";let values = [];
-        for (let line of lines) {
-            let match = line.match(/(\w+)\s+(\w+)\s*?(\d+)?(?:,(\d+))??/i);
-            if (match) {
-                let columnName = match[1];
-                let columnType = match[2].toUpperCase();
-                let columnPrecision = match[3] ? match[3] : (columnType === 'FLOAT' ? '126' : 'NULL');
-                let columnScale = match[4] ? match[4] : (columnType === 'NUMBER' ? '0' : 'NULL');
-                values.push(`('${columnName}', '${columnType}', ${columnPrecision}, ${columnScale})`);
-            }
-        }
-        
-        if (values.length > 0) {
-            sql += values.join(",\n") + ";";
-        } else {
-            sql = "No valid columns found in the input.";
-        }
-        
-        document.getElementById("output").textContent = sql;
-    }
-</script>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Parser</title>
 </head>
 <body>
-    <h2>Table Config Generator</h2>
-    <textarea id="tableScript" rows="10" cols="80" placeholder="Paste your CREATE TABLE script here..."></textarea>
-    <br>
-    <button onclick="generateSQL()">Generate SQL</button>
-    <h3>Generated SQL:</h3>
-    <pre id="output"></pre>
+    <h3>Enter SQL CREATE TABLE Statement:</h3>
+    <textarea id="inputSql" rows="6" cols="50"></textarea><br>
+    <button onclick="convertSql()">Convert</button>
+    <h3>Output SQL:</h3>
+    <textarea id="outputSql" rows="6" cols="50" readonly></textarea>
+
+    <script>
+        function convertSql() {
+            let input = document.getElementById("inputSql").value;
+            let lines = input.split("\n").map(line => line.trim()).filter(line => line && !line.startsWith("CREATE TABLE") && !line.startsWith("(") && !line.startsWith(")"));
+
+            let values = lines.map(line => {
+                let parts = line.split(/\s+/);
+                let columnName = parts[0];
+                let typeDetails = parts[1].replace(",", "");
+                
+                let columnType, precision = "Null", scale = "Null";
+                
+                if (typeDetails.startsWith("VARCHAR2")) {
+                    columnType = "VARCHAR";
+                    precision = typeDetails.match(/(\d+)/)?.[1] || "Null";
+                } else if (typeDetails.startsWith("FLOAT")) {
+                    columnType = "FLOAT";
+                    let floatMatch = typeDetails.match(/(\d+),\s*(\d+)/);
+                    if (floatMatch) {
+                        precision = floatMatch[1];
+                        scale = floatMatch[2];
+                    }
+                }
+
+                return `('${columnName}', '${columnType}', ${precision}, ${scale})`;
+            });
+
+            let output = `INSERT INTO config_table (column_name, column_type, column_precision, column_scale) VALUES\n` + values.join(",\n") + ";";
+            document.getElementById("outputSql").value = output;
+        }
+    </script>
 </body>
 </html>
-
-
